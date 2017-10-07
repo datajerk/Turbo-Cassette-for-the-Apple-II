@@ -107,11 +107,6 @@ var audio_context = new (window.AudioContext || window.webkitAudioContext)();
 var sample_rate= audio_context.sampleRate;
 
 
-function mute () {
-    player.reset();
-}
-
-
 function silencio (how_much) {
     var s= '';
     while (how_much--) s+= '0';
@@ -130,7 +125,7 @@ function silencio (how_much) {
 })();
 
 
-function play (samples) {
+function play (samples, cb) {
 
     var channels= 1;
     var audio_buffer = audio_context.createBuffer(channels, samples.length, sample_rate);
@@ -141,7 +136,9 @@ function play (samples) {
     samples= '';
     var audio_node = audio_context.createBufferSource();
     audio_node.buffer= audio_buffer;
-    player.push({audio_node:audio_node});
+    var item= {audio_node:audio_node};
+    if (cb) item.cb= cb;
+    player.push(item);
 }
 
 
@@ -337,7 +334,7 @@ function prolongar (n, samples) {
 }
 
 
-var prgm_applesoft= "13080a00b938322c303a8c323038303a800000000a27272727272727272727";
+var prgm_applesoft= "14080a00b93231342c303a8c323038303a800000000a272727272727272727";
 
 
 var prgm_assembly= "203aff8d10c020b009204608ad00c03005b0ed4c29088d10c0297fc91bd0e18d53c08d51c060a9208dc2088dd8084c640900a200a00838ad60c0305dad60c03058ad60c03053ad60c0304ead60c03049ad60c03044ad60c0303fad60c03040ad60c0303bad60c03036ad60c03031ad60c0302cad60c03027ad60c03022ad60c0301dad60c03018ad60c03013ad60c0300ead60c030094c47099004184cea08183e00203888d028e8f07da0084cf4089004184c5c08383e00203888d084e8f067a0084c6608ad60c010e5ad60c010e0ad60c010dbad60c010d6ad60c010d1ad60c010ccad60c010c7ad60c010c8ad60c010c3ad60c010bead60c010b9ad60c010b4ad60c010afad60c010aaad60c010a5ad60c010a0ad60c0109bad60c01096ad60c010914c4709c000d015e000d011aec208e8e040f00b8ec2088ed8084c640938601860ad30c0a209ad60c08d5108ad00c030ecad60c04d510810f3ad510810e3ca3007ad60c010f830d9a209ca30d4ad60c010f83000a209ca3007ad60c030f810c1a209ca30bcad60c030f84c520820e2f38d52c0a9018d9a3a8d3a268dba2d8dc1248d19378dc1208d42248d37378d3d3d8d3a228d9b338d9b3f8dbb288d9b3b8d373b8d363a8dba298d9a3e8d42308d363e8d9b378dbb2ca9028dbd208db733a9038db7238db73a8d3f308d383a8d42288d3f208d1a278d383e8dbb228db7368d5e288dbb308dbc298dbd248d422c8d3f2c8d3f288d1a2b8d38368d3a2a8d353b8d35338db6268db8228db8268dbc2d8dbb348d3a2e8dbc318d3f248d98338d352f8d373f8db6228d35378d1a23a9048d383ba9068d3c2d8d3f298d973b8d98278d973f8d3c29a9078dbd288d1a2f8d982f8db62a8db72e8d3f218d392b8db72f8d38328dbd218d382e8db72a8dbb388db82a8d193f8db62e8d982b8d382f8db72b8d983b8dbc398d98378dbd2c8db7328d352b8d5e248d3f348db7278db82e8dbc358d1a338dbb3c8d3a328d3b3e8d193ba9088dbc2ca90c8dbc348d1a3f8dbc30a90e8d3f3c8d382a8dbc3c8db63a8dbc388d3c228db8368d3c258d3c218d99278d1a3b8d3c318dbd348d40208d3c268db6368d1a378dbd308d3b25a90f8d39278dbc3d8d3e3d8d3b3a8db73e8db8328d5e208d3f388d3f258d983f8d38338d3b218d99238db6328d3a36a9188db6378d99228d9a238d9a27a91c8d3b268d3b2a8dbf288d3e388dbb398d3e348d3b2d8dbb3d8d992f8db62f8d36238db63e8dbf248dbd3c8dbd2d8d3b328dbb358d3b2e8db63b8d99268d3b228d4028a91e8d3b298dbd388db62b8d992b8d98238db63f8d40248dbf208d38378db83a8d3c358d3b36a91f8d39238d3e398d3a3a8dbd258d3723a9308db53ea9388d39368d3b358dbe208d99378d3e3c8d992e8d40308db6338d3d258db93a8d3b398d393aa9398dbf308dbf2ca93c8d3d218d99338d402c8d3b318db83e8db93e8d992aa93e8dbd298d3523a93f8d35278d3e318d3e35a9408dbe3c8db9218d34338d342f8d34378d41308d412c8d343f8dbe388d3e218dbc288dba388dba348dba288d192b8db5268d343b8db9258db52a8d3e258d37368dbc24a9418d37338d4220a9438dbc258dba25a9448d373aa9468db7228d373ea9478db726a94e8dbb318d3e2ca94f8dbb2d8db623a95c8d3932a95e8d3e308d392ea95f8db627a9608dbe2c8db9318d35328db9298d353e8d972b8d19278d41288d9a2f8dbe308d3e298db9398d363b8d3d398dc0208dc0248dba2c8dc0288d41248d19238dba308d3e248db9358db92d8d5d288d9a3f8d3d358db5228d5d208dbe34a9618d372f8d382b8db93da9638dbc21a9678dbb298d39228d363f8dbb25a96c8d3e28a96f8d392a8d3926a9708d38278d3e208db9368db92a8db83d8d18378dbe288d993f8dbe248d3d2d8d993a8db9268d35368d353a8d41208d993e8d393e8d36338dba268d40388d9a338d403c8d5d248db9228d3e2d8d9a378db9328db92e8d9a3b8d99368d3d318d3637a9718d3b3da9738dbf388dbb21a9778dbf3ca9788d38228d183b8d362f8d38238d362b8d3d298d993b8d40348d99328d972f8d3627a9798d372ba97b8d3c3d8dbf34a97c8dba228d183f8d3a398d9733a97e8d3c398d38268d3a3d8d3a3e8d9737a97f8d37278d353f8dba218db5238db52760000000";
@@ -372,7 +369,9 @@ var fotos= [
     'f666.png',
     '6502.png',
     '6502.png',
-    '6502.png'].shuffle().forEach(setup);
+    '6502.png'].shuffle();
+    
+fotos.forEach(setup);
 
 
 function setup (src, idx, obj) {        
@@ -391,7 +390,7 @@ function setup (src, idx, obj) {
             }
             canvas.getContext('2d').drawImage(img, -h, -v);
             div._hex_frames= foto2hex(canvas);
-            div.onclick= function onclick () {
+            div._get_samples= function get_samples () {
                 var samples= '';
                 samples+= silencio(sample_rate/10);
                 for (var i=0 ; i<div._hex_frames.length ; i+=1) {
@@ -400,8 +399,11 @@ function setup (src, idx, obj) {
                     samples+= hex_to_samples_turbo(div._hex_frames[i]);
                 }
                 samples+= silencio(sample_rate/10);
-                mute();
-                play(samples);
+                return samples;
+            }
+            div.onclick= function onclick () {
+                player.reset();
+                play(div._get_samples());
             }
         };
         img.src= src;
@@ -474,7 +476,7 @@ function setup (src, idx, obj) {
 
 (function setup_listeners () {
 
-    $("b_mute").onclick= mute;
+    $("b_mute").onclick= player.reset;
     
     $("b_load_applesoft").onclick= function () {
         player.reset();
@@ -509,7 +511,15 @@ function setup (src, idx, obj) {
     
     $("b_csa2").onclick= function () { location.href= 'https://groups.google.com/forum/#!topic/comp.sys.apple2/V_S7-0pv3CA/discussion' };
     
-    $("b_loop").onclick= function () { alert('Sorry not yet.') };
+    $("b_loop").onclick= function () {
+        player.reset();
+        var last= rnd(fotos.length);
+        play(fotos[last]._get_samples(), cb);
+        function cb (i) {
+            do { i= rnd(fotos.length); } while (i === last);
+            play(fotos[last=i]._get_samples(), cb);
+        }
+    };
     
     $("o_sample_rate").innerHTML= "Sample rate is "+ sample_rate+ " sps";
     
