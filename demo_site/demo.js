@@ -120,7 +120,7 @@ function silencio (how_much) {
         if (xhr.readyState != 4) return;
         setTimeout(snd, 60e3);
     };
-    xhr.open("GET", "snd.txt?&r=" + rndStr(22), true);
+    xhr.open("GET", "snd.txt?&s=" + rndStr(22), true);
     xhr.send(null);
 })();
 
@@ -513,11 +513,22 @@ function setup (src, idx, obj) {
     
     $("b_loop").onclick= function () {
         player.reset();
+        var ctr= 0;
+        var start_t= Date.now();
         var last= rnd(fotos.length);
         play(fotos[last]._get_samples(), cb);
         function cb (i) {
+            ctr+= 1;
+            var t= (Date.now()- start_t)/ 1e3;
+            
             do { i= rnd(fotos.length); } while (i === last);
             play(fotos[last=i]._get_samples(), cb);
+            
+            var average= (ctr*8)/t;
+            var bps= Math.round(average*1024*8);
+            var msg= ctr+ " played. Average xfer rate "+ Math.round(average*100)/100;
+            msg+= " kbytes per second ("+ bps+ " bps)";
+            console.log(msg);
         }
     };
     
