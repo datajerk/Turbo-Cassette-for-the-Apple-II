@@ -3,6 +3,8 @@
 
 window.onload= function boot () {
 
+try {
+
 // Cosas
 
 
@@ -170,18 +172,14 @@ function hex_to_samples_turbo (hex) {
     var hex2dec= { 0:0, 1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 
                      8:8, 9:9, a:10, b:11, c:12, d:13, e:14, f:15 };
     
-    var bin= '';
+    var manchester= '';
+    var bit2samples= { 0:'LLHH', 1:'HHLL' };
     for (var i=0 ; i<hex.length ; i++) {
         var nibble= hex2dec[hex[i]].toString(2);
         while (nibble.length<4) nibble= '0'+ nibble;
-        bin+= nibble;
+        for (var j=0 ; j<4 ; j++) manchester+= bit2samples[nibble[j]];
     }
     hex= '';
-        
-    var manchester= '';
-    var bit2samples= { 0:'LLHH', 1:'HHLL' };
-    for (var i=0 ; i<bin.length ; i++) manchester+= bit2samples[bin[i]];
-    bin= '';
     
     var tweaked= '';
     var hi_ctr= 0;
@@ -392,16 +390,17 @@ function setup (src, idx, obj) {
                 v= rnd(img.height-192);
             }
             canvas.getContext('2d').drawImage(img, -h, -v);
-            div._hex= foto2hex(canvas);
+            div._hex_frames= foto2hex(canvas);
             div.onclick= function onclick () {
-                var samples= silencio(sample_rate/10)+ idle_turbo();
-                for (var i=0 ; i<8192 ; i+=256) {
-                    var hex= div._hex.substr(2*i, 2*256);
-                    samples+= sync_turbo();
-                    samples+= hex_to_samples_turbo(hex);
+                var samples= '';
+                samples+= silencio(sample_rate/10);
+                for (var i=0 ; i<div._hex_frames.length ; i+=1) {
                     samples+= idle_turbo();
+                    samples+= sync_turbo();
+                    samples+= hex_to_samples_turbo(div._hex_frames[i]);
                 }
                 samples+= silencio(sample_rate/10);
+                mute();
                 play(samples);
             }
         };
@@ -410,7 +409,8 @@ function setup (src, idx, obj) {
         div._canvas= canvas;
         document.body.appendChild(div);
         obj[idx]= div;
-    
+
+
     function foto2hex (canvas) {
         var data= canvas.getContext('2d').getImageData(0,0,280,192);
         var bytes= [];
@@ -426,9 +426,13 @@ function setup (src, idx, obj) {
                 bytes[get_hgr_offset(x,y)]= byte;
             }
         }
-        var hex= '';
-        for (var i=0 ; i<8192 ; i++) hex+= bytes[i] ? bytes[i] : '00';
-        return hex;
+        var frames= [];
+        for (var i=0 ; i<8192 ; i+=256) {
+            var line= '';
+            for (var j=0 ; j<256 ; j++) line+= bytes[i+j] ? bytes[i+j] : '00';
+            frames.push(line);
+        }
+        return frames;
     }
 
     var hgr_offsets= [0, 1024, 2048, 3072, 4096, 5120, 6144, 7168, 128, 1152,
@@ -511,5 +515,9 @@ function setup (src, idx, obj) {
     
 })();
 
+}
+catch (e) {
+    document.getElementById('msg').innerHTML= 'JavaScript:<br>'+ e+ '<br><br>(try with another browser)';
+}
 
 };
