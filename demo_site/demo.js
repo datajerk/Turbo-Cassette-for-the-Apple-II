@@ -41,6 +41,62 @@ function rndStr (len) {
 
 
 
+// Player object
+
+var player= (function nu_player () {
+
+    var player= Object.create(null);
+    var play_list= [];
+    var playing= 0;
+    
+    function play () {
+        if (!play_list.length) return;
+        if (playing) return;
+        
+        playing= play_list[0];
+        playing.audio_node.connect(audio_context.destination);
+        playing.audio_node.onended= player_cb;
+        console.log("PLAY");
+        playing.audio_node.start();
+    }
+    
+    function reset () {
+        if (playing) playing.audio_node.disconnect(audio_context.destination);
+        play_list= [];
+        playing= 0;
+    }
+    
+    function push (item) {
+        play_list.push(item);
+        play();
+    }
+    
+    function player_cb () {
+        if (!playing) return;
+        playing.audio_node.disconnect(audio_context.destination);
+        if (playing.cb) {
+            try { playing.cb() } catch (e) { ; }
+        }
+        play_list.splice(0,1);
+        playing= 0;
+        play();
+    }
+    
+    player.reset= reset;
+    player.push= push;
+    return player;
+})();
+
+
+
+
+
+
+
+
+
+
+
 // Audio cosas comunes
 
 var invert= 0;
@@ -50,10 +106,7 @@ var sample_rate= audio_context.sampleRate;
 
 
 function mute () {
-    while (playing.length) {
-        var f= playing.pop();
-        try { f() } catch (e) { ; }
-    }
+    player.reset();
 }
 
 
@@ -77,8 +130,6 @@ function silencio (how_much) {
 
 function play (samples) {
 
-    mute();
-
     var channels= 1;
     var audio_buffer = audio_context.createBuffer(channels, samples.length, sample_rate);
     var channel_data= audio_buffer.getChannelData(0);
@@ -88,21 +139,7 @@ function play (samples) {
     samples= '';
     var audio_node = audio_context.createBufferSource();
     audio_node.buffer= audio_buffer;
-    audio_node.connect(audio_context.destination);
-    audio_node.onended= cleanup;
-    playing.push(cleanup);
-    console.log("PLAY BEGIN");
-    audio_node.start();
-
-    function cleanup () {
-        audio_node.disconnect(audio_context.destination);
-        //audio_context.suspend();
-        //audio_context.close();
-        var where= playing.indexOf(cleanup);
-        if (where >= 0) playing.splice(where, 1);
-        console.log("PLAY END");
-    };
-
+    player.push({audio_node:audio_node});
 }
 
 
@@ -436,14 +473,17 @@ function setup (src, idx, obj) {
     $("b_mute").onclick= mute;
     
     $("b_load_applesoft").onclick= function () {
+        player.reset();
         play(applesoft_hex_to_samples(prgm_applesoft+prgm_assembly));
     };
 
     $("b_load_assembly").onclick= function () {
+        player.reset();
         play(assembly_hex_to_samples(prgm_assembly));
     };
     
     $("b_reset").onclick= function () {
+        player.reset();
         var samples= '';
         samples+= silencio(sample_rate/10);
         samples+= idle_turbo();
@@ -454,6 +494,7 @@ function setup (src, idx, obj) {
     };
     
     $("b_invert").onclick= function () {
+        player.reset();
         invert= !invert;
         $("b_invert").value= invert ? 'NOW INVERTED' : 'NOW NOT INVERTED';
     };
