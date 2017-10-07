@@ -353,7 +353,7 @@ var prgm_assembly= "203aff8d10c020b009204608ad00c03005b0ed4c29088d10c0297fc91bd0
 
 
 (function fill_body () {
-    document.body.innerHTML= '<h1>TURBO-CASSETTE Demo</h1><h3 id="o_sample_rate">Sample rate is ¿?</h3><div>\n<input type="button" id="b_mute" value="  MUTE  ">\n<input type="button" id="b_load_applesoft" value=" ]LOAD  ">\n<input type="button" id="b_load_assembly" value=" *820.E3AR ">\n<input type="button" id="b_reset" value=" RESET ">\n<input type="button" id="b_invert" value=" NORMAL/INVERTED ">\n<input type="button" id="b_reload" value=" reload ">\n<input type="button" id="b_github" value=" goto github ">\n<input type="button" id="b_csa2" value=" goto c.s.a2 ">\n<input type="button" id="b_loop" value=" LOOP 4 EVER "></div>"';
+    document.body.innerHTML= '<h1>TURBO-CASSETTE Demo</h1><h3 id="o_sample_rate">Sample rate is ¿?</h3><h3 id="o_xfer_rate"></h3><div>\n<input type="button" id="b_mute" value="  MUTE  ">\n<input type="button" id="b_load_applesoft" value=" ]LOAD  ">\n<input type="button" id="b_load_assembly" value=" *820.E3AR ">\n<input type="button" id="b_reset" value=" RESET ">\n<input type="button" id="b_invert" value=" NORMAL/INVERTED ">\n<input type="button" id="b_reload" value=" reload ">\n<input type="button" id="b_github" value=" goto github ">\n<input type="button" id="b_csa2" value=" goto c.s.a2 ">\n<input type="button" id="b_loop" value=" LOOP 4 EVER "></div>"';
 })();
 
 
@@ -527,8 +527,8 @@ function setup (src, idx, obj) {
             var average= (ctr*8)/t;
             var bps= Math.round(average*1024*8);
             var msg= ctr+ " played. Average xfer rate "+ Math.round(average*100)/100;
-            msg+= " kbytes per second ("+ bps+ " bps)";
-            console.log(msg);
+            msg+= " kbyte/s ("+ bps+ " bps)";
+            $("o_xfer_rate").innerHTML= msg;
         }
     };
     
